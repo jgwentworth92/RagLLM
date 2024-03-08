@@ -4,11 +4,10 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from .store_factory import get_vector_store
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
-from appfrwk.config import get_config
-from appfrwk.logging_config import get_logger
+
 
 import hashlib
-
+"""
 config = get_config()
 log = get_logger(__name__)
 async def process_and_store_documents(documents, splitter):
@@ -33,19 +32,21 @@ def split_document(text, splitter):
     MAX_TOKENS = 1000
     return splitter.chunks(text, chunk_capacity=(MIN_TOKENS, MAX_TOKENS))
 
-
+"""
 def prepare_documents_for_storage(chunks: list[str]):
     return [
         Document(page_content=chunk, metadata={"digest": hashlib.md5(chunk.encode()).hexdigest()})
         for chunk in chunks
     ]
-
+"""
 DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
 def _combine_documents(
     docs, document_prompt=DEFAULT_DOCUMENT_PROMPT, document_separator="\n\n"
 ):
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
     return document_separator.join(doc_strings)
+"""
+"""
 async def store_documents(docs):
     # This should interface with your actual storage solution, e.g., pgvector_store
     # The implementation would look something like this:
@@ -68,3 +69,4 @@ async def store_documents(docs):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+"""
