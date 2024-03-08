@@ -70,7 +70,7 @@ try:
             chat_history=lambda x: get_buffer_string(x["chat_history"])
         )
                             | CONDENSE_QUESTION_PROMPT
-                            | ChatOpenAI(temperature=0)
+                            | model
                             | StrOutputParser(),
     )
     _context = {
