@@ -1,7 +1,4 @@
-from fastapi import HTTPException
 from langchain.schema import Document
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from .store_factory import get_vector_store
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
 
