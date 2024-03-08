@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Depends
 from langchain.schema import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -8,6 +8,8 @@ from appfrwk.config import get_config
 from operator import itemgetter
 
 from App.LangChainIntergrations.LangChainLayer import LangChainService
+from App.database import db, crud
+from App.database.user_schemas import UserCreate
 from App.document_processing import _combine_documents
 from App.PGvector.models import DocumentModel, DocumentResponse
 from App.PGvector.store import AsnyPgVector
@@ -18,6 +20,7 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain_core.messages import AIMessage, HumanMessage, get_buffer_string
 from langchain_core.runnables import RunnableParallel
 from langchain.globals import set_debug
+from App.database import agent_schemas as schemas
 import hashlib
 
 set_debug(True)
@@ -43,7 +46,7 @@ template = """Answer the question based only on the following context:
 
    Question: {question}
    """
-Service=LangChainService(model_name=config.SERVICE_MODEL, template=template)
+Service = LangChainService(model_name=config.SERVICE_MODEL, template=template)
 
 try:
 
@@ -59,30 +62,7 @@ try:
         collection_name="testcollection",
         mode=mode,
     )
-    CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
-    retriever = pgvector_store.as_retriever()
-    template = """Answer the question based only on the following context:
-    {context}
-
-    Question: {question}
-    """
-    ANSWER_PROMPT = ChatPromptTemplate.from_template(template)
-    DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
-    prompt = ChatPromptTemplate.from_template(template)
-    model = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=OPENAI_API_KEY)
-    _inputs = RunnableParallel(
-        standalone_question=RunnablePassthrough.assign(
-            chat_history=lambda x: get_buffer_string(x["chat_history"])
-        )
-                            | CONDENSE_QUESTION_PROMPT
-                            | model
-                            | StrOutputParser(),
-    )
-    _context = {
-        "context": itemgetter("standalone_question") | retriever | _combine_documents,
-        "question": lambda x: x["standalone_question"],
-    }
-    conversational_qa_chain = _inputs | _context | ANSWER_PROMPT | model | StrOutputParser()
+    db.connect()
 
 except ValueError as e:
     raise HTTPException(status_code=500, detail=str(e))
@@ -173,6 +153,28 @@ async def delete_documents(ids: list[str]):
         return {"message": f"{len(ids)} documents deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create-conversation", response_model=schemas.Conversation)
+async def create_conversation(conversation: schemas.ConversationCreate,
+                              db_session=Depends(db.get_db)) -> schemas.Conversation:
+    """ Create conversation """
+
+    try:
+
+        user_sub = conversation.user_sub
+        user = await crud.get_user_by_sub(db_session, user_sub)
+        if not user:
+            log.info(f"Sub not found, creating user")
+            user = await crud.create_user(db_session, UserCreate(sub=user_sub))
+        log.info(f"User retrieved")
+        log.info(f"Creating conversation")
+        db_conversation = await crud.create_conversation(db_session, conversation)
+        log.info(f"Conversation created")
+        return db_conversation
+    except Exception as e:
+        log.error(f"Error creating conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/chat/")
