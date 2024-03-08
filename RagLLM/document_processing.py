@@ -6,11 +6,11 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
 from appfrwk.config import get_config
 from appfrwk.logging_config import get_logger
-config = get_config()
-log = get_logger(__name__)
+
 import hashlib
 
-
+config = get_config()
+log = get_logger(__name__)
 async def process_and_store_documents(documents, splitter):
     try:
         # Splitting the document into chunks
