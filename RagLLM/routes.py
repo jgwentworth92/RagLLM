@@ -6,6 +6,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from appfrwk.config import get_config
 from operator import itemgetter
+
+from .LangChainLayer import LangChainService
 from .document_processing import _combine_documents
 from .models import DocumentModel, DocumentResponse
 from .store import AsnyPgVector
@@ -15,8 +17,10 @@ from semantic_text_splitter import TiktokenTextSplitter
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.messages import AIMessage, HumanMessage, get_buffer_string
 from langchain_core.runnables import RunnableParallel
+from langchain.globals import set_debug
 import hashlib
 
+set_debug(True)
 config = get_config()
 log = get_logger(__name__)
 
@@ -34,6 +38,13 @@ Chat History:
 Follow Up Input: {question}
 Standalone question:"""
 history = []
+template = """Answer the question based only on the following context:
+   {context}
+
+   Question: {question}
+   """
+LangChainService(model_name=config.SERVICE_MODEL, template=template)
+
 try:
 
     CONNECTION_STRING = f"postgresql+psycopg2://myuser:mypassword@db:5432/mydatabase"
@@ -59,12 +70,6 @@ try:
     DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
     prompt = ChatPromptTemplate.from_template(template)
     model = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=OPENAI_API_KEY)
-    chain = (
-            {"context": retriever, "question": RunnablePassthrough()}
-            | prompt
-            | model
-            | StrOutputParser()
-    )
     _inputs = RunnableParallel(
         standalone_question=RunnablePassthrough.assign(
             chat_history=lambda x: get_buffer_string(x["chat_history"])
@@ -174,7 +179,8 @@ async def delete_documents(ids: list[str]):
 async def quick_response(msg: str):
     history.append(HumanMessage(content=msg))
     try:
-        result = conversational_qa_chain.invoke(
+
+        result = LangChainService.conversational_qa_chain.invoke(
             {
                 "question": msg,
                 "chat_history": history,
