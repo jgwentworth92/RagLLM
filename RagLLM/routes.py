@@ -43,7 +43,7 @@ template = """Answer the question based only on the following context:
 
    Question: {question}
    """
-LangChainService(model_name=config.SERVICE_MODEL, template=template)
+Service=LangChainService(model_name=config.SERVICE_MODEL, template=template)
 
 try:
 
@@ -180,7 +180,7 @@ async def quick_response(msg: str):
     history.append(HumanMessage(content=msg))
     try:
 
-        result = LangChainService.conversational_qa_chain.invoke(
+        result = Service.conversational_qa_chain.invoke(
             {
                 "question": msg,
                 "chat_history": history,
