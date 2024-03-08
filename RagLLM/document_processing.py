@@ -4,6 +4,8 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from .store_factory import get_vector_store
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
+from appfrwk.config import get_config
+from appfrwk.logging_config import get_logger
 config = get_config()
 log = get_logger(__name__)
 import hashlib
