@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="RAG LLM conversational Chatbot",
     version="0.16",
-    packages=find_packages(include=["App"]),
+    packages=find_packages(include=["app"]),
     install_requires=[
         'fastapi',
         'pydantic',
@@ -20,7 +20,7 @@ setup(
     ],
     entry_points={
         'my_fastapi_app.plugins': [
-            'App = App.Router.routes:add_routes',
+            'RagLLM = app.Router.routes:add_routes',
         ],
     }
 )
