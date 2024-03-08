@@ -4,9 +4,9 @@ This module contains the CRUD (Create, Read, Update, Delete) operations for the 
 
 from sqlalchemy import sql
 from sqlalchemy.orm import joinedload
-from app.database.models import Agent, Conversation, Message, User
-from app.database import agent_schemas as schemas
-from app.database import user_schemas
+from RagLLM.database.models import Agent, Conversation, Message, User
+from RagLLM.database import agent_schemas as schemas
+from RagLLM.database import user_schemas
 from uuid import uuid4
 
 # =========================

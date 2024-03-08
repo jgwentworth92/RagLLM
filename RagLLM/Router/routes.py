@@ -7,20 +7,20 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from appfrwk.config import get_config
 from operator import itemgetter
 
-from app.LangChainIntergrations.LangChainLayer import LangChainService
-from app.database import db, crud
-from app.database.user_schemas import UserCreate
-from app.document_processing import _combine_documents
-from app.PGvector.models import DocumentModel, DocumentResponse
-from app.PGvector.store import AsnyPgVector
-from app.PGvector.store_factory import get_vector_store
+from RagLLM.LangChainIntergrations.LangChainLayer import LangChainService
+from RagLLM.database import db, crud
+from RagLLM.database.user_schemas import UserCreate
+from RagLLM.document_processing import _combine_documents
+from RagLLM.PGvector.models import DocumentModel, DocumentResponse
+from RagLLM.PGvector.store import AsnyPgVector
+from RagLLM.PGvector.store_factory import get_vector_store
 from appfrwk.logging_config import get_logger
 from semantic_text_splitter import TiktokenTextSplitter
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.messages import AIMessage, HumanMessage, get_buffer_string
 from langchain_core.runnables import RunnableParallel
 from langchain.globals import set_debug
-from app.database import agent_schemas as schemas
+from RagLLM.database import agent_schemas as schemas
 import hashlib
 
 set_debug(True)

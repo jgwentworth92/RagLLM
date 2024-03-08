@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, ForeignKey, String, DateTime, JSON
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from RagLLM.database import Base
 
 class User(Base):
     """
