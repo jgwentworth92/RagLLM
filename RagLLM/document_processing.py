@@ -5,8 +5,8 @@ from .store_factory import get_vector_store
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
 
-
 import hashlib
+
 """
 config = get_config()
 log = get_logger(__name__)
@@ -33,19 +33,25 @@ def split_document(text, splitter):
     return splitter.chunks(text, chunk_capacity=(MIN_TOKENS, MAX_TOKENS))
 
 """
+
+
 def prepare_documents_for_storage(chunks: list[str]):
     return [
         Document(page_content=chunk, metadata={"digest": hashlib.md5(chunk.encode()).hexdigest()})
         for chunk in chunks
     ]
-"""
+
+
 DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
+
+
 def _combine_documents(
-    docs, document_prompt=DEFAULT_DOCUMENT_PROMPT, document_separator="\n\n"
+        docs, document_prompt=DEFAULT_DOCUMENT_PROMPT, document_separator="\n\n"
 ):
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
     return document_separator.join(doc_strings)
-"""
+
+
 """
 async def store_documents(docs):
     # This should interface with your actual storage solution, e.g., pgvector_store
