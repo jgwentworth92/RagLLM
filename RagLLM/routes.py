@@ -5,13 +5,22 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from appfrwk.config import get_config
+from operator import itemgetter
+
+from .LangChainLayer import LangChainService
+from .document_processing import _combine_documents
 from .models import DocumentModel, DocumentResponse
 from .store import AsnyPgVector
 from .store_factory import get_vector_store
 from appfrwk.logging_config import get_logger
 from semantic_text_splitter import TiktokenTextSplitter
+from langchain.prompts.prompt import PromptTemplate
+from langchain_core.messages import AIMessage, HumanMessage, get_buffer_string
+from langchain_core.runnables import RunnableParallel
+from langchain.globals import set_debug
 import hashlib
 
+set_debug(True)
 config = get_config()
 log = get_logger(__name__)
 
@@ -21,6 +30,20 @@ router = APIRouter(
     tags=["RAG"],
     responses={404: {"description": "Not found"}},
 )
+
+_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
+
+Chat History:
+{chat_history}
+Follow Up Input: {question}
+Standalone question:"""
+history = []
+template = """Answer the question based only on the following context:
+   {context}
+
+   Question: {question}
+   """
+Service=LangChainService(model_name=config.SERVICE_MODEL, template=template)
 
 try:
 
@@ -36,21 +59,30 @@ try:
         collection_name="testcollection",
         mode=mode,
     )
+    CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
     retriever = pgvector_store.as_retriever()
     template = """Answer the question based only on the following context:
     {context}
 
     Question: {question}
     """
+    ANSWER_PROMPT = ChatPromptTemplate.from_template(template)
+    DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
     prompt = ChatPromptTemplate.from_template(template)
     model = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=OPENAI_API_KEY)
-    chain = (
-            {"context": retriever, "question": RunnablePassthrough()}
-            | prompt
-            | model
-            | StrOutputParser()
+    _inputs = RunnableParallel(
+        standalone_question=RunnablePassthrough.assign(
+            chat_history=lambda x: get_buffer_string(x["chat_history"])
+        )
+                            | CONDENSE_QUESTION_PROMPT
+                            | model
+                            | StrOutputParser(),
     )
-
+    _context = {
+        "context": itemgetter("standalone_question") | retriever | _combine_documents,
+        "question": lambda x: x["standalone_question"],
+    }
+    conversational_qa_chain = _inputs | _context | ANSWER_PROMPT | model | StrOutputParser()
 
 except ValueError as e:
     raise HTTPException(status_code=500, detail=str(e))
@@ -145,5 +177,17 @@ async def delete_documents(ids: list[str]):
 
 @router.post("/chat/")
 async def quick_response(msg: str):
-    result = chain.invoke(msg)
-    return result
+    history.append(HumanMessage(content=msg))
+    try:
+
+        result = Service.conversational_qa_chain.invoke(
+            {
+                "question": msg,
+                "chat_history": history,
+            }
+        )
+        history.append(AIMessage(content=result))
+        return result
+    except Exception as e:
+        log.error(f"error code 500 {e}")
+        raise HTTPException(status_code=500, detail=str(e))
