@@ -16,7 +16,8 @@ setup(
         'pgvector',
         'tiktoken',
         'semantic-text-splitter',
-        'tokenizers'
+        'tokenizers',
+        'asyncpg'
     ],
     entry_points={
         'my_fastapi_app.plugins': [
