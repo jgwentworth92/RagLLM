@@ -187,13 +187,13 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
         raise HTTPException(status_code=500, detail="Internal server error")
     try:
         chathistory=load_conversation_history(conversation, Service)
-        result = Service.conversational_qa_chain.invoke(
+        result = Service.rag_chain.invoke(
             {
                 "question": message.message,
                 "chat_history":  chathistory,
             }
         )
-        history.append(AIMessage(content=result))
+
         db_messages = agent_schemas.MessageCreate(
             user_message=message.message, agent_message=result, conversation_id=conversation.id)
         await crud.create_conversation_message(db_session, message=db_messages, conversation_id=conversation.id)
