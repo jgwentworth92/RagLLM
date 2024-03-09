@@ -149,8 +149,10 @@ class LangChainService:
     def _initialize_rag_chain(self):
         def contextualized_question(input: dict):
             if input.get("chat_history"):
+                log.info("chat history is present")
                 return self.contextualize_q_chain
             else:
+                log.info("chat history is not present")
                 return input["question"]
 
 

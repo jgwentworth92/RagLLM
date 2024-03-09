@@ -31,8 +31,7 @@ def load_conversation_history(conversation: models.Conversation, service: LangCh
     """
     try:
         # Load initial agent message if the conversation is new
-        ai_first_msg = service.contextualize_q_prompt
-        service.add_ai_message(ai_first_msg)
+
 
         # Load existing conversation messages
         for msg in sort_message_history(conversation):
