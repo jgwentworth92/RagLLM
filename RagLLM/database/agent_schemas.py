@@ -33,7 +33,7 @@ class ConversationBase(BaseModel):
     - `agent_id (str)`: Agent id
     - `user_sub (str)`: User sub
     """
-    agent_id: str
+
     user_sub: str
 
 
