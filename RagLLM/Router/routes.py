@@ -6,7 +6,7 @@ from langchain.globals import set_debug
 from langchain.schema import Document
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import OpenAIEmbeddings
-from semantic_text_splitter import TiktokenTextSplitter
+from semantic_text_splitter import TextSplitter
 from starlette.responses import StreamingResponse
 
 from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
@@ -76,7 +76,7 @@ async def add_documents(documents: list[DocumentModel]):
     try:
 
         pdf_text = documents[0].page_content
-        splitter = TiktokenTextSplitter("gpt-3.5-turbo", trim_chunks=False)
+        splitter = TextSplitter.from_tiktoken_model("gpt-3.5-turbo", trim_chunks=False)
         MIN_TOKENS = 100
         MAX_TOKENS = 1000
 

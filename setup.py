@@ -15,7 +15,7 @@ setup(
         'psycopg2-binary',
         'pgvector',
         'tiktoken',
-        'semantic-text-splitter',
+        'semantic-text-splitter==0.7.0',
         'tokenizers',
         'asyncpg',
         'alembic',
