@@ -17,7 +17,8 @@ setup(
         'tiktoken',
         'semantic-text-splitter',
         'tokenizers',
-        'asyncpg'
+        'asyncpg',
+        'alembic'
     ],
     entry_points={
         'my_fastapi_app.plugins': [
