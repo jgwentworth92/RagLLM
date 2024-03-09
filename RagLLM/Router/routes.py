@@ -181,15 +181,16 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
     try:
         conversation = await crud.get_conversation(db_session, message.conversation_id)
         log.info(f"User Message: {message.message}")
+
     except Exception as e:
         log.error(f"Error getting conversation: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
     try:
-
+        chathistory=load_conversation_history(conversation, Service)
         result = Service.conversational_qa_chain.invoke(
             {
                 "question": message.message,
-                "chat_history": conversation.messages,
+                "chat_history":  chathistory,
             }
         )
         history.append(AIMessage(content=result))
