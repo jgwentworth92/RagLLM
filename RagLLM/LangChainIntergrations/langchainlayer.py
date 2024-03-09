@@ -18,6 +18,7 @@ from langchain_community.chat_models import ChatOpenAI
 from langchain_community.embeddings import OpenAIEmbeddings
 from RagLLM.Processing.document_processing import combine_documents
 from RagLLM.PGvector.store_factory import get_vector_store
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 log = get_logger(__name__)
 config = get_config()
@@ -99,6 +100,56 @@ class LangChainService:
             "question": lambda x: x["standalone_question"],
         }
         self.conversational_qa_chain = _inputs | _context | self.ANSWER_PROMPT | self.llm | StrOutputParser()
+
+    def _initialize_rag_chain(self):
+        # Initialize retriever and templates as before, including new prompts...
+        self._initialize_contextualize_q_chain()
+        self._initialize_qa_chain()
+
+    def _initialize_contextualize_q_chain(self):
+        contextualize_q_system_prompt = """Given a chat history and the latest user question \
+        which might reference context in the chat history, formulate a standalone question \
+        which can be understood without the chat history. Do NOT answer the question, \
+        just reformulate it if needed and otherwise return it as is."""
+        self.contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", contextualize_q_system_prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{question}"),
+            ]
+        )
+        self.contextualize_q_chain = self.contextualize_q_prompt | self.llm | StrOutputParser()
+
+    def _initialize_qa_chain(self):
+        qa_system_prompt = """You are an assistant for question-answering tasks. \
+              Use the following pieces of retrieved context to answer the question. \
+              If you don't know the answer, just say that you don't know. \
+              Use three sentences maximum and keep the answer concise.\
+              {context}"""
+        self.qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", qa_system_prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{question}"),
+            ]
+        )
+
+    def _initialize_rag_chain(self):
+        def contextualized_question(input: dict):
+            if input.get("chat_history"):
+                return self.contextualize_q_chain
+            else:
+                return input["question"]
+
+        format_docs = lambda docs: " ".join([doc["content"] for doc in docs])  # Define or import format_docs as needed
+
+        self.rag_chain = (
+                RunnablePassthrough.assign(
+                    context=contextualized_question | self.retriever | format_docs
+                )
+                | self.qa_prompt
+                | self.llm
+        )
 
     def get_message_history(self):
         """Return the message history."""
