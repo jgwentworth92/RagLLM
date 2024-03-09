@@ -33,11 +33,13 @@ def load_conversation_history(conversation: models.Conversation, service):
     try:
 
         if conversation and conversation.messages:
+            log.info("conversation has messages")
             # Load existing conversation messages
             for msg in sort_message_history(conversation):
                 service.add_user_message(msg.user_message)
                 service.add_ai_message(msg.agent_message)
         else:
+            log.info("new conversation")
             service.add_ai_message("hi how may i help you")
 
         # Now chat_history is guaranteed to be a list, though it could be empty
