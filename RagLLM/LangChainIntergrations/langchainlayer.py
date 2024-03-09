@@ -38,7 +38,8 @@ class LangChainService:
         self._initialize_llm()
         self._initialize_retriever_and_templates()  # New method for retriever and template initialization
         self._initialize_conversational_qa_chain()  # New conversational QA chain
-
+        self._initialize_contextualize_q_chain()
+        self._initialize_qa_chain()
     # Existing methods...
 
     def _initialize_memory_and_parser(self):
@@ -101,10 +102,6 @@ class LangChainService:
         }
         self.conversational_qa_chain = _inputs | _context | self.ANSWER_PROMPT | self.llm | StrOutputParser()
 
-    def _initialize_rag_chain(self):
-        # Initialize retriever and templates as before, including new prompts...
-        self._initialize_contextualize_q_chain()
-        self._initialize_qa_chain()
 
     def _initialize_contextualize_q_chain(self):
         contextualize_q_system_prompt = """Given a chat history and the latest user question \
