@@ -153,11 +153,10 @@ class LangChainService:
             else:
                 return input["question"]
 
-        format_docs = lambda docs: " ".join([doc["content"] for doc in docs])  # Define or import format_docs as needed
 
         self.rag_chain = (
                 RunnablePassthrough.assign(
-                    context=contextualized_question | self.retriever | format_docs
+                    context=contextualized_question | self.retriever | combine_documents
                 )
                 | self.qa_prompt
                 | self.llm

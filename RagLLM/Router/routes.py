@@ -45,7 +45,6 @@ template = """Answer the question based only on the following context:
    Question: {question}
    """
 
-
 try:
 
     CONNECTION_STRING = f"postgresql+psycopg2://myuser:mypassword@db:5432/mydatabase"
@@ -175,7 +174,7 @@ async def create_conversation(conversation: schemas.ConversationCreate,
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/chat/")
+@router.post("/rag_chain_chat/")
 async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get_db)):
     Service = LangChainService(model_name=config.SERVICE_MODEL, template=template)
 
@@ -187,11 +186,11 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
         log.error(f"Error getting conversation: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
     try:
-        chathistory=load_conversation_history(conversation, Service)
+        chathistory = load_conversation_history(conversation, Service)
         result = Service.rag_chain.invoke(
             {
                 "question": message.message,
-                "chat_history":  chathistory,
+                "chat_history": chathistory,
             }
         )
 
@@ -202,6 +201,36 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
     except Exception as e:
         log.error(f"error code 500 {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/qa_rag_chain_chat/")
+async def qa_rag_response(message: schemas.UserMessage, db_session=Depends(db.get_db)):
+    Service = LangChainService(model_name=config.SERVICE_MODEL, template=template)
+
+    try:
+        conversation = await crud.get_conversation(db_session, message.conversation_id)
+        log.info(f"User Message: {message.message}")
+
+    except Exception as e:
+        log.error(f"Error getting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    try:
+        chathistory = load_conversation_history(conversation, Service)
+        result = Service.conversational_qa_chain.invoke(
+            {
+                "question": message.message,
+                "chat_history": chathistory,
+            }
+        )
+
+        db_messages = agent_schemas.MessageCreate(
+            user_message=message.message, agent_message=result, conversation_id=conversation.id)
+        await crud.create_conversation_message(db_session, message=db_messages, conversation_id=conversation.id)
+        return result
+    except Exception as e:
+        log.error(f"error code 500 {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/user-conversations", response_model=List[schemas.Conversation])
 async def get_user_conversations(user_sub: str, db_session=Depends(db.get_db)) -> List[schemas.Conversation]:
@@ -232,6 +261,8 @@ async def get_conversation_messages(conversation_id: str, db_session=Depends(db.
             f"Error retrieving messages for conversation id: {conversation_id}")
         log.error(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
 """
 @router.post("/chat-stream", response_class=StreamingResponse)
 async def chat_streaming(message: schemas.UserMessage, db_session=Depends(db.get_db)) -> StreamingResponse:
