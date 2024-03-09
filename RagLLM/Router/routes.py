@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import HTTPException, APIRouter, Depends
 from langchain.schema import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -205,7 +207,35 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
         log.error(f"error code 500 {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/user-conversations", response_model=List[schemas.Conversation])
+async def get_user_conversations(user_sub: str, db_session=Depends(db.get_db)) -> List[schemas.Conversation]:
+    """
+    Get all conversations for an agent by id
+    """
+    try:
+        log.info(f"Getting all conversations for user sub: {user_sub}")
+        db_conversations = await crud.get_user_conversations(db_session, user_sub)
+        return db_conversations
+    except Exception as e:
+        log.error(f"Error retrieving conversations for user_sub: {user_sub}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
+
+@router.get("/get-conversation-messages", response_model=List[schemas.MessageCreate])
+async def get_conversation_messages(conversation_id: str, db_session=Depends(db.get_db)) -> List[schemas.MessageCreate]:
+    """
+    Get all messages for a conversation by id
+    """
+    try:
+        log.info(
+            f"Getting all messages for conversation id: {conversation_id}")
+        db_messages = await crud.get_conversation_messages(db_session, conversation_id)
+        return db_messages
+    except Exception as e:
+        log.error(
+            f"Error retrieving messages for conversation id: {conversation_id}")
+        log.error(f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/chat-stream", response_class=StreamingResponse)
 async def chat_streaming(message: schemas.UserMessage, db_session=Depends(db.get_db)) -> StreamingResponse:
