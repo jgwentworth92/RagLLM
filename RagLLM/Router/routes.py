@@ -44,7 +44,7 @@ template = """Answer the question based only on the following context:
 
    Question: {question}
    """
-Service = LangChainService(model_name=config.SERVICE_MODEL, template=template)
+
 
 try:
 
@@ -177,7 +177,8 @@ async def create_conversation(conversation: schemas.ConversationCreate,
 
 @router.post("/chat/")
 async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get_db)):
-    history.append(HumanMessage(content=message.message))
+    Service = LangChainService(model_name=config.SERVICE_MODEL, template=template)
+
     try:
         conversation = await crud.get_conversation(db_session, message.conversation_id)
         log.info(f"User Message: {message.message}")
@@ -231,13 +232,10 @@ async def get_conversation_messages(conversation_id: str, db_session=Depends(db.
             f"Error retrieving messages for conversation id: {conversation_id}")
         log.error(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
+"""
 @router.post("/chat-stream", response_class=StreamingResponse)
 async def chat_streaming(message: schemas.UserMessage, db_session=Depends(db.get_db)) -> StreamingResponse:
-    """
-    Get a streaming response from the chat agent model given a message from the client using the chat
-    streaming endpoint.
-    """
+
     log.info(f"User conversation id: {message.conversation_id}")
     log.info(f"User message: {message.message}")
 
@@ -256,3 +254,4 @@ async def chat_streaming(message: schemas.UserMessage, db_session=Depends(db.get
     except Exception as e:
         log.error(f"Error generating streaming response: {str(e)}")
         return StreamingResponse("Sorry, I'm having technical difficulties.", media_type="text/event-stream")
+"""
