@@ -40,6 +40,7 @@ class LangChainService:
         self._initialize_conversational_qa_chain()  # New conversational QA chain
         self._initialize_contextualize_q_chain()
         self._initialize_qa_chain()
+        self._initialize_rag_chain()
     # Existing methods...
 
     def _initialize_memory_and_parser(self):
