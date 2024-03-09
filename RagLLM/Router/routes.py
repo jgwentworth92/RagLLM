@@ -187,6 +187,7 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
         raise HTTPException(status_code=500, detail="Internal server error")
     try:
         chathistory = load_conversation_history(conversation, Service)
+
         result = Service.rag_chain.invoke(
             {
                 "question": message.message,

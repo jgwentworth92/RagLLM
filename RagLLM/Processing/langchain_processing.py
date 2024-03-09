@@ -2,10 +2,12 @@ from typing import List, AsyncIterable
 
 from fastapi import HTTPException
 
+from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.database import agent_schemas, crud, models
 from appfrwk.logging_config import get_logger
 
 log = get_logger(__name__)
+
 
 def sort_message_history(conversation: models.Conversation) -> List[models.Message]:
     """
@@ -19,7 +21,7 @@ def sort_message_history(conversation: models.Conversation) -> List[models.Messa
     return message_history
 
 
-def load_conversation_history(conversation: models.Conversation, service):
+def load_conversation_history(conversation: models.Conversation, service: LangChainService):
     """
     Loads the conversation history into the LangChainService.
 
@@ -29,8 +31,8 @@ def load_conversation_history(conversation: models.Conversation, service):
     """
     try:
         # Load initial agent message if the conversation is new
-        #ai_first_msg = conversation.agent.first_message
-        #service.add_ai_message(ai_first_msg)
+        ai_first_msg = service.contextualize_q_prompt
+        service.add_ai_message(ai_first_msg)
 
         # Load existing conversation messages
         for msg in sort_message_history(conversation):
