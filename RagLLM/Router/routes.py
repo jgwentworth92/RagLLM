@@ -1,31 +1,25 @@
+import hashlib
 from typing import List
 
 from fastapi import HTTPException, APIRouter, Depends
+from langchain.globals import set_debug
 from langchain.schema import Document
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_openai import OpenAIEmbeddings
+from semantic_text_splitter import TiktokenTextSplitter
 from starlette.responses import StreamingResponse
 
-from appfrwk.config import get_config
-from operator import itemgetter
-
 from RagLLM.LangChainIntergrations.LangChainLayer import LangChainService
-from RagLLM.database import db, crud, agent_schemas
-from RagLLM.database.user_schemas import UserCreate
-from RagLLM.document_processing import _combine_documents, load_conversation_history, generate_streaming_response
 from RagLLM.PGvector.models import DocumentModel, DocumentResponse
 from RagLLM.PGvector.store import AsnyPgVector
 from RagLLM.PGvector.store_factory import get_vector_store
-from appfrwk.logging_config import get_logger
-from semantic_text_splitter import TiktokenTextSplitter
-from langchain.prompts.prompt import PromptTemplate
-from langchain_core.messages import AIMessage, HumanMessage, get_buffer_string
-from langchain_core.runnables import RunnableParallel
-from langchain.globals import set_debug
+from RagLLM.Processing.langchain_processing import load_conversation_history, generate_streaming_response
 from RagLLM.database import agent_schemas as schemas
-import hashlib
+from RagLLM.database import db, crud, agent_schemas
+from RagLLM.database.user_schemas import UserCreate
+
+from appfrwk.config import get_config
+from appfrwk.logging_config import get_logger
 
 set_debug(True)
 config = get_config()

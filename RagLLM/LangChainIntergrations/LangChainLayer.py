@@ -16,7 +16,7 @@ from langchain.schema.runnable import RunnablePassthrough, RunnableParallel
 from langchain_core.messages import get_buffer_string
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from RagLLM.document_processing import _combine_documents
+from RagLLM.Processing.document_processing import _combine_documents
 from RagLLM.PGvector.store_factory import get_vector_store
 
 log = get_logger(__name__)
