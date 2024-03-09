@@ -29,8 +29,8 @@ def load_conversation_history(conversation: models.Conversation, service):
     """
     try:
         # Load initial agent message if the conversation is new
-        ai_first_msg = conversation.agent.first_message
-        service.add_ai_message(ai_first_msg)
+        #ai_first_msg = conversation.agent.first_message
+        #service.add_ai_message(ai_first_msg)
 
         # Load existing conversation messages
         for msg in sort_message_history(conversation):
