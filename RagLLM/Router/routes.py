@@ -4,13 +4,15 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from starlette.responses import StreamingResponse
+
 from appfrwk.config import get_config
 from operator import itemgetter
 
 from RagLLM.LangChainIntergrations.LangChainLayer import LangChainService
-from RagLLM.database import db, crud
+from RagLLM.database import db, crud, agent_schemas
 from RagLLM.database.user_schemas import UserCreate
-from RagLLM.document_processing import _combine_documents
+from RagLLM.document_processing import _combine_documents, load_conversation_history, generate_streaming_response
 from RagLLM.PGvector.models import DocumentModel, DocumentResponse
 from RagLLM.PGvector.store import AsnyPgVector
 from RagLLM.PGvector.store_factory import get_vector_store
@@ -178,18 +180,54 @@ async def create_conversation(conversation: schemas.ConversationCreate,
 
 
 @router.post("/chat/")
-async def quick_response(msg: str):
-    history.append(HumanMessage(content=msg))
+async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get_db)):
+    history.append(HumanMessage(content=message.message))
+    try:
+        conversation = await crud.get_conversation(db_session, message.conversation_id)
+        log.info(f"User Message: {message.message}")
+    except Exception as e:
+        log.error(f"Error getting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     try:
 
         result = Service.conversational_qa_chain.invoke(
             {
-                "question": msg,
-                "chat_history": history,
+                "question": message.message,
+                "chat_history": conversation.messages,
             }
         )
         history.append(AIMessage(content=result))
+        db_messages = agent_schemas.MessageCreate(
+            user_message=message.message, agent_message=result, conversation_id=conversation.id)
+        await crud.create_conversation_message(db_session, message=db_messages, conversation_id=conversation.id)
         return result
     except Exception as e:
         log.error(f"error code 500 {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/chat-stream", response_class=StreamingResponse)
+async def chat_streaming(message: schemas.UserMessage, db_session=Depends(db.get_db)) -> StreamingResponse:
+    """
+    Get a streaming response from the chat agent model given a message from the client using the chat
+    streaming endpoint.
+    """
+    log.info(f"User conversation id: {message.conversation_id}")
+    log.info(f"User message: {message.message}")
+
+    try:
+        conversation = await crud.get_conversation(db_session, message.conversation_id)
+        log.info(f"User Message: {message.message}")
+    except Exception as e:
+        log.error(f"Error getting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    try:
+        # response = await generate_streaming_response(db_session, message.message, conversation)
+        service = LangChainService(model_name=config.SERVICE_MODEL)
+        load_conversation_history(conversation, Service)
+        return StreamingResponse(generate_streaming_response(db_session, service, message.message, conversation), media_type="text/event-stream")
+    except Exception as e:
+        log.error(f"Error generating streaming response: {str(e)}")
+        return StreamingResponse("Sorry, I'm having technical difficulties.", media_type="text/event-stream")

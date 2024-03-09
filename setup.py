@@ -19,6 +19,9 @@ setup(
         'tokenizers',
         'asyncpg',
         'alembic'
+        'pydantic',
+        'pydantic-core',
+        'pydantic-settings',
     ],
     entry_points={
         'my_fastapi_app.plugins': [
