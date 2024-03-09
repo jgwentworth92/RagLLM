@@ -14,14 +14,13 @@ from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough, RunnableParallel
 # Assuming these are defined elsewhere
 from langchain_core.messages import get_buffer_string
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
-from RagLLM.Processing.document_processing import _combine_documents
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
+from RagLLM.Processing.document_processing import combine_documents
 from RagLLM.PGvector.store_factory import get_vector_store
 
 log = get_logger(__name__)
 config = get_config()
-
 
 
 class LangChainService:
@@ -29,7 +28,7 @@ class LangChainService:
     Updated LangChainService class with a chain for conversational retrieval augmented generation.
     """
 
-    def __init__(self,  template: str,model_name=config.SERVICE_MODEL, verbose=True, streaming=True):
+    def __init__(self, template: str, model_name=config.SERVICE_MODEL, verbose=True, streaming=True):
         self.model_name = model_name
         self.verbose = verbose
         self.streaming = streaming
@@ -96,7 +95,7 @@ class LangChainService:
                                 | StrOutputParser(),
         )
         _context = {
-            "context": itemgetter("standalone_question") | self.retriever | _combine_documents,
+            "context": itemgetter("standalone_question") | self.retriever | combine_documents,
             "question": lambda x: x["standalone_question"],
         }
         self.conversational_qa_chain = _inputs | _context | self.ANSWER_PROMPT | self.llm | StrOutputParser()

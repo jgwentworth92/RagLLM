@@ -1,14 +1,8 @@
-from typing import List, AsyncIterable
 
-from fastapi import HTTPException
 from langchain.schema import Document
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
-
 import hashlib
-
-from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
-from RagLLM.database import models, crud, agent_schemas
 from appfrwk.logging_config import get_logger
 
 log = get_logger(__name__)
@@ -50,7 +44,7 @@ def prepare_documents_for_storage(chunks: list[str]):
 DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
 
 
-def _combine_documents(
+def combine_documents(
         docs, document_prompt=DEFAULT_DOCUMENT_PROMPT, document_separator="\n\n"
 ):
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
