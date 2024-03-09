@@ -174,7 +174,7 @@ async def create_conversation(conversation: schemas.ConversationCreate,
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/Rag_chain_chat/")
+@router.post("/rag_chain_chat/")
 async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get_db)):
     Service = LangChainService(model_name=config.SERVICE_MODEL, template=template)
 
@@ -187,6 +187,7 @@ async def quick_response(message: schemas.UserMessage, db_session=Depends(db.get
         raise HTTPException(status_code=500, detail="Internal server error")
     try:
         chathistory = load_conversation_history(conversation, Service)
+        log.info(f"current chat history {chathistory}")
 
         result = Service.rag_chain.invoke(
             {
