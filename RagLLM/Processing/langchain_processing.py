@@ -1,6 +1,7 @@
 from typing import List, AsyncIterable
 
-from RagLLM.LangChainIntergrations.LangChainLayer import LangChainService
+from fastapi import HTTPException
+
 from RagLLM.database import agent_schemas, crud, models
 from appfrwk.logging_config import get_logger
 
@@ -18,7 +19,7 @@ def sort_message_history(conversation: models.Conversation) -> List[models.Messa
     return message_history
 
 
-def load_conversation_history(conversation: models.Conversation, service: LangChainService):
+def load_conversation_history(conversation: models.Conversation, service):
     """
     Loads the conversation history into the LangChainService.
 
@@ -41,7 +42,7 @@ def load_conversation_history(conversation: models.Conversation, service: LangCh
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-async def generate_streaming_response(db_session, service: LangChainService, user_message: str,
+async def generate_streaming_response(db_session, service, user_message: str,
                                       conversation: models.Conversation) -> AsyncIterable[str]:
     """
     Generates a streaming response from the LangChainService.
