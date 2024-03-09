@@ -18,7 +18,7 @@ setup(
         'semantic-text-splitter',
         'tokenizers',
         'asyncpg',
-        'alembic'
+        'alembic',
         'pydantic',
         'pydantic-core',
         'pydantic-settings',
