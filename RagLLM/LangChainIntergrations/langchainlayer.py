@@ -21,7 +21,7 @@ from RagLLM.PGvector.store_factory import get_vector_store
 
 log = get_logger(__name__)
 config = get_config()
-set_debug(config.DEBUG)
+
 
 
 class LangChainService:

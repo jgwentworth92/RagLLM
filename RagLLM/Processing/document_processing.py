@@ -7,7 +7,7 @@ from langchain_core.prompts import format_document
 
 import hashlib
 
-from RagLLM.LangChainIntergrations.LangChainLayer import LangChainService
+from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.database import models, crud, agent_schemas
 from appfrwk.logging_config import get_logger
 

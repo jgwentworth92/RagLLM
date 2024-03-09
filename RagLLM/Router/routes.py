@@ -9,7 +9,7 @@ from langchain_openai import OpenAIEmbeddings
 from semantic_text_splitter import TiktokenTextSplitter
 from starlette.responses import StreamingResponse
 
-from RagLLM.LangChainIntergrations.LangChainLayer import LangChainService
+from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.PGvector.models import DocumentModel, DocumentResponse
 from RagLLM.PGvector.store import AsnyPgVector
 from RagLLM.PGvector.store_factory import get_vector_store
