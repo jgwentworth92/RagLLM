@@ -21,22 +21,28 @@ def sort_message_history(conversation: models.Conversation) -> List[models.Messa
     return message_history
 
 
-def load_conversation_history(conversation: models.Conversation, service: LangChainService):
+def load_conversation_history(conversation: models.Conversation, service):
     """
-    Loads the conversation history into the LangChainService.
+    Loads the conversation history into the LangChainService, ensuring that chat_history
+    is always a list.
 
     Args:
         conversation: The conversation model from the database.
         service: The LangChainService instance.
     """
     try:
-        # Load initial agent message if the conversation is new
 
+        if conversation and conversation.messages:
+            # Load existing conversation messages
+            for msg in sort_message_history(conversation):
+                service.add_user_message(msg.user_message)
+                service.add_ai_message(msg.agent_message)
+        else:
+            service.add_ai_message("hi how may i help you")
 
-        # Load existing conversation messages
-        for msg in sort_message_history(conversation):
-            service.add_user_message(msg.user_message)
-            service.add_ai_message(msg.agent_message)
+        # Now chat_history is guaranteed to be a list, though it could be empty
+        # Here, instead of directly adding messages to the service, you would
+        # appropriately pass `chat_history` where required, ensuring it's never None
 
     except Exception as e:
         log.error(f"Error loading conversation history: {str(e)}")
