@@ -46,7 +46,6 @@ class Agent(Base):
     - `first_message (str)`: The first message the AI agent will send
     - `response_shape (JSON)`: The expected shape for each agent's interaction with a user (for programmatic communication)
     - `instructions (str)`: Instructions for the AI agent
-    - `conversations (relationship)`: Relationship between agent and conversation
     - `created_at (datetime)`: The date and time the agent was created
     - `modified_at (datetime)`: The date and time the agent was last modified
     """
@@ -58,7 +57,6 @@ class Agent(Base):
     response_shape = Column(String,   nullable=False)
     instructions = Column(String, nullable=False)
     # relationship between agent and conversation
-    conversations = relationship("Conversation", back_populates="agent")
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow)
 
@@ -82,8 +80,6 @@ class Conversation(Base):
 
     Attributes:
     - `id (str)`: The unique identifier of the conversation
-    - `agent_id (str)`: The ID of the agent associated with the conversation
-    - `agent (relationship)`: Relationship between conversation and agent
     - `messages (relationship)`: Relationship between conversation and messages
     - `created_at (datetime)`: The date and time the conversation was created
     - `modified_at (datetime)`: The date and time the conversation was last modified

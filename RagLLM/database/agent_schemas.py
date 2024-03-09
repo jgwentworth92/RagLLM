@@ -30,7 +30,6 @@ class ConversationBase(BaseModel):
     Conversation base schema
 
     Attributes:
-    - `agent_id (str)`: Agent id
     - `user_sub (str)`: User sub
     """
 
