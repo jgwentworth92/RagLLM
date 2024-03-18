@@ -52,7 +52,7 @@ class AutoGenService:
 
         self.qa = ConversationalRetrievalChain.from_llm(
             OpenAI(temperature=0,openai_api_key=self.openai_api_key),
-            self.retriever.as_retriever(),
+            self.retriever,
             memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True),
         )
 
