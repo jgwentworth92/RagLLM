@@ -51,7 +51,7 @@ class AutoGenService:
     def _initialize_retrieval_chain(self):
 
         self.qa = ConversationalRetrievalChain.from_llm(
-            OpenAI(temperature=0),
+            OpenAI(temperature=0,openai_api_key=self.openai_api_key),
             self.retriever.as_retriever(),
             memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True),
         )
