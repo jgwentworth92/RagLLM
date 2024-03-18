@@ -224,11 +224,13 @@ async def qa_rag_response(message: schemas.UserMessage, db_session=Depends(db.ge
                 "chat_history": Service.get_message_history(),
             }
         )
-
+        """
         db_messages = agent_schemas.MessageCreate(
             user_message=message.message, agent_message=result, conversation_id=conversation.id)
         await crud.create_conversation_message(db_session, message=db_messages, conversation_id=conversation.id)
+                """
         return result
+
     except Exception as e:
         log.error(f"error code 500 {e}")
         raise HTTPException(status_code=500, detail=str(e))
