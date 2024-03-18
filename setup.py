@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="RagLLM",
+    name="RAG LLM conversational Chatbot",
     version="0.16",
     packages=find_packages(),
     install_requires=[
@@ -15,12 +15,17 @@ setup(
         'psycopg2-binary',
         'pgvector',
         'tiktoken',
-        'semantic-text-splitter',
-        'tokenizers'
+        'semantic-text-splitter==0.7.0',
+        'tokenizers',
+        'asyncpg',
+        'alembic',
+        'pydantic',
+        'pydantic-core',
+        'pydantic-settings',
     ],
     entry_points={
         'my_fastapi_app.plugins': [
-            'RagLLM = RagLLM.routes:add_routes',
+            'RagLLM = RagLLM.Router.routes:add_routes',
         ],
     }
 )

@@ -1,12 +1,11 @@
-from fastapi import HTTPException
+
 from langchain.schema import Document
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from .store_factory import get_vector_store
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.prompts import format_document
-
 import hashlib
+from appfrwk.logging_config import get_logger
 
+log = get_logger(__name__)
 """
 config = get_config()
 log = get_logger(__name__)
@@ -45,11 +44,14 @@ def prepare_documents_for_storage(chunks: list[str]):
 DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
 
 
-def _combine_documents(
+def combine_documents(
         docs, document_prompt=DEFAULT_DOCUMENT_PROMPT, document_separator="\n\n"
 ):
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
     return document_separator.join(doc_strings)
+
+
+
 
 
 """
