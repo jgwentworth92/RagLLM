@@ -155,13 +155,12 @@ class LangChainService:
                 log.info("chat history is not present")
                 return input["question"]
 
-
         self.rag_chain = (
                 RunnablePassthrough.assign(
                     context=contextualized_question | self.retriever | combine_documents
                 )
                 | self.qa_prompt
-                | self.llm
+                | self.llm | StrOutputParser()
         )
 
     def get_message_history(self):
