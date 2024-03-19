@@ -224,7 +224,7 @@ async def autogen_rag_response(message: schemas.UserMessage):
         )
 
         log.info("Logging session ID: " + str(logging_session_id))
-        return result
+        return Service.user_proxy.last_message()
 
     except Exception as e:
         log.error(f"error code 500 {e}")
@@ -302,7 +302,7 @@ async def receive_from_client(autogen_chat: AutogenChat):
 
 
 @router.websocket("/ws/{chat_id}")
-async def websocket_endpoint(websocket: WebSocket,message: schemas.UserMessage):
+async def websocket_endpoint(websocket: WebSocket, message: schemas.UserMessage):
     try:
         autogen_chat = AutogenChat(chat_id=message.conversation_id, websocket=websocket)
         await manager.connect(autogen_chat)

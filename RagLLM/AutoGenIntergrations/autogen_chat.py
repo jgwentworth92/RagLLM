@@ -1,8 +1,9 @@
 import autogen
 
+from RagLLM.AutoGenIntergrations.user_proxy_webagent import UserProxyWebAgent
 from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from appfrwk.config import get_config
-from user_proxy_webagent import UserProxyWebAgent
+
 import asyncio
 
 config = get_config()
