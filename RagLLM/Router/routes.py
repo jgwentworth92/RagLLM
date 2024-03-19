@@ -264,36 +264,3 @@ async def get_conversation_messages(conversation_id: str, db_session=Depends(db.
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/autogenRAG")
-async def chat_streaming(message: str):
-    config_list = [
-        {
-            "model": "gpt-4-1106-preview",
-            "api_key": config.OPENAI_API_KEY,
-        }
-    ]
-    llm_config = {
-        "request_timeout": 600,
-        "config_list": config_list,
-        "temperature": 0
-    }
-
-    assistant = RetrieveAssistantAgent(
-        name="assistant",
-        system_message="You are a helpful assistant.",
-        llm_config=llm_config,
-    )
-    splitter = TextSplitter.from_tiktoken_model("gpt-3.5-turbo", trim_chunks=False)
-    rag_agent = RetrieveUserProxyAgent(
-        human_input_mode="NEVER",
-        retrieve_config={
-            "task": "qa",
-            "docs_path": f"postgresql+psycopg2://myuser:mypassword@db:5432/mydatabase",
-            "collection_name": "testcollection",
-            "embedding_function": embeddings,
-            "custom_text_split_function": splitter,
-        },
-    )
-    assistant.reset()
-    results = rag_agent.initiate_chat(assistant, problem=message, n_results=2)
-    return results
