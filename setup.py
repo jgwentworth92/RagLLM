@@ -22,7 +22,7 @@ setup(
         'pydantic',
         'pydantic-core',
         'pydantic-settings',
-        "pyautogen"
+        "pyautogen[retrievechat]"
     ],
     entry_points={
         'my_fastapi_app.plugins': [
