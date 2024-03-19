@@ -1,10 +1,14 @@
 import autogen
+from fastapi import Depends
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.llms.openai import OpenAI
 
+from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.PGvector.store_factory import get_vector_store
+from RagLLM.Processing.langchain_processing import load_conversation_history
+from RagLLM.database import db
 from appfrwk.config import get_config
 from appfrwk.logging_config import get_logger
 
@@ -49,12 +53,13 @@ class AutoGenService:
         self.retriever = self.pgvector_store.as_retriever()
 
     def _initialize_retrieval_chain(self):
+        template = """Answer the question based only on the following context:
+           {context}
 
-        self.qa = ConversationalRetrievalChain.from_llm(
-            OpenAI(temperature=0,openai_api_key=self.openai_api_key),
-            self.retriever,
-            memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True),
-        )
+           Question: {question}
+           """
+
+        self.qa = LangChainService(model_name=config.SERVICE_MODEL, template=template)
 
     def _initialize_llm_config_assistant(self):
         llm_config_assistant = {
@@ -86,8 +91,10 @@ class AutoGenService:
         )
 
     def answer_PDF_question(self, question):
-        response = self.qa({"question": question})
-        return response["answer"]
+        response = self.qa.rag_chain.invoke({"question": question,
+                            "chat_history": self.qa.get_message_history(),
+                            })
+        return response
 
     def _initialize_UserProxyAgent(self):
         self.user_proxy = autogen.UserProxyAgent(
