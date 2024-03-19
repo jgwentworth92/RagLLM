@@ -216,7 +216,8 @@ async def autogen_rag_response(message: schemas.UserMessage):
 
     Service = AutoGenService(config_list)
     try:
-        logging_session_id = autogen.ChatCompletion.start_logging()
+
+        logging_session_id = autogen.runtime_logging.start(config={"dbname": "logs.db"})
         result = await Service.user_proxy.initiate_chat(
             Service.assistant,
             message=message.message,
@@ -224,6 +225,7 @@ async def autogen_rag_response(message: schemas.UserMessage):
         )
 
         log.info("Logging session ID: " + str(logging_session_id))
+        autogen.runtime_logging.stop()
         return Service.user_proxy.last_message()
 
     except Exception as e:
