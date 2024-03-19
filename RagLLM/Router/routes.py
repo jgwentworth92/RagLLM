@@ -1,22 +1,19 @@
 import hashlib
 from typing import List
-
-from autogen.agentchat.contrib.retrieve_assistant_agent import RetrieveAssistantAgent
-from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
-from fastapi import HTTPException, APIRouter, Depends
+import asyncio
+import autogen
+from fastapi import HTTPException, APIRouter, Depends, WebSocket
 from langchain.globals import set_debug
 from langchain.schema import Document
-from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import OpenAIEmbeddings
 from semantic_text_splitter import TextSplitter
-from starlette.responses import StreamingResponse
-
 from RagLLM.AutoGenIntergrations import AutoGenService
+from RagLLM.AutoGenIntergrations.autogen_chat import AutogenChat
 from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.PGvector.models import DocumentModel, DocumentResponse
 from RagLLM.PGvector.store import AsnyPgVector
 from RagLLM.PGvector.store_factory import get_vector_store
-from RagLLM.Processing.langchain_processing import load_conversation_history, generate_streaming_response
+from RagLLM.Processing.langchain_processing import load_conversation_history
 from RagLLM.database import agent_schemas as schemas
 from RagLLM.database import db, crud, agent_schemas
 from RagLLM.database.user_schemas import UserCreate
@@ -219,13 +216,14 @@ async def autogen_rag_response(message: schemas.UserMessage):
 
     Service = AutoGenService(config_list)
     try:
+        logging_session_id = autogen.ChatCompletion.start_logging()
         result = await Service.user_proxy.initiate_chat(
             Service.assistant,
             message=message.message,
             clear_history=True,
         )
-        log.info(result)
 
+        log.info("Logging session ID: " + str(logging_session_id))
         return result
 
     except Exception as e:
@@ -264,3 +262,58 @@ async def get_conversation_messages(conversation_id: str, db_session=Depends(db.
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[AutogenChat] = []
+
+    async def connect(self, autogen_chat: AutogenChat):
+        await autogen_chat.websocket.accept()
+        self.active_connections.append(autogen_chat)
+
+    async def disconnect(self, autogen_chat: AutogenChat):
+        autogen_chat.client_receive_queue.put_nowait("DO_FINISH")
+        print(f"autogen_chat {autogen_chat.chat_id} disconnected")
+        self.active_connections.remove(autogen_chat)
+
+
+manager = ConnectionManager()
+
+
+async def send_to_client(autogen_chat: AutogenChat):
+    while True:
+        reply = await autogen_chat.client_receive_queue.get()
+        if reply and reply == "DO_FINISH":
+            autogen_chat.client_receive_queue.task_done()
+            break
+        await autogen_chat.websocket.send_text(reply)
+        autogen_chat.client_receive_queue.task_done()
+        await asyncio.sleep(0.05)
+
+
+async def receive_from_client(autogen_chat: AutogenChat):
+    while True:
+        data = await autogen_chat.websocket.receive_text()
+        if data and data == "DO_FINISH":
+            await autogen_chat.client_receive_queue.put("DO_FINISH")
+            await autogen_chat.client_sent_queue.put("DO_FINISH")
+            break
+        await autogen_chat.client_sent_queue.put(data)
+        await asyncio.sleep(0.05)
+
+
+@router.websocket("/ws/{chat_id}")
+async def websocket_endpoint(websocket: WebSocket,message: schemas.UserMessage):
+    try:
+        autogen_chat = AutogenChat(chat_id=message.conversation_id, websocket=websocket)
+        await manager.connect(autogen_chat)
+        data = await autogen_chat.websocket.receive_text()
+        future_calls = asyncio.gather(send_to_client(autogen_chat), receive_from_client(autogen_chat))
+        await autogen_chat.start(data)
+        print("DO_FINISHED")
+    except Exception as e:
+        print("ERROR", str(e))
+    finally:
+        try:
+            await manager.disconnect(autogen_chat)
+        except:
+            pass
