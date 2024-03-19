@@ -30,7 +30,6 @@ class AutoGenService:
         """Initialize the language model."""
         try:
             self.llm_config_proxy = {
-                "seed": 42,  # change the seed for different trials
                 "temperature": 0,
                 "config_list": self.config_list,
                 "request_timeout": 600

@@ -214,12 +214,14 @@ async def autogen_rag_response(message: schemas.UserMessage):
             "api_key": config.OPENAI_API_KEY,
         }
     ]
+
     Service = AutoGenService(config_list)
     try:
 
-        result = Service.user_proxy.initiate_chat(
+        result = await Service.user_proxy.initiate_chat(
             Service.assistant,
-            message=message.message
+            message=message.message,
+            clear_history=True,
         )
         log.info(result)
 
