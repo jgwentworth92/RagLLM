@@ -1,13 +1,5 @@
 import autogen
-import chromadb
-from autogen import AssistantAgent
-from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
-from fastapi import Depends
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.llms.openai import OpenAI
-
 from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.PGvector.store_factory import get_vector_store
 from appfrwk.config import get_config
@@ -15,6 +7,13 @@ from appfrwk.logging_config import get_logger
 
 log = get_logger(__name__)
 config = get_config()
+
+config_list = [
+    {
+        "model": "gpt-3.5-turbo",
+    }
+]
+
 
 
 def termination_msg(x):
@@ -24,10 +23,10 @@ def termination_msg(x):
 class AutoGenService:
     def __init__(self, config_list):
         self.llm_config = {
-    "timeout": 60,
-    "temperature": 0,
-    "config_list": config_list,
-}
+            "timeout": 60,
+            "temperature": 0,
+            "config_list": config_list,
+        }
         self.config_list = config_list
         self.openai_api_key = config.OPENAI_API_KEY
         self._initialize_llm()
@@ -121,5 +120,3 @@ class AutoGenService:
                 "answer_PDF_question": self.answer_PDF_question
             }
         )
-
-
