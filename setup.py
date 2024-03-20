@@ -16,6 +16,7 @@ setup(
         'pgvector',
         'tiktoken',
         'semantic-text-splitter==0.7.0',
+        'pyautogen[redis]'
         'tokenizers',
         'asyncpg',
         'alembic',
