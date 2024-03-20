@@ -1,4 +1,7 @@
 import autogen
+import chromadb
+from autogen import AssistantAgent
+from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
 from fastapi import Depends
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
@@ -7,8 +10,6 @@ from langchain_community.llms.openai import OpenAI
 
 from RagLLM.LangChainIntergrations.langchainlayer import LangChainService
 from RagLLM.PGvector.store_factory import get_vector_store
-from RagLLM.Processing.langchain_processing import load_conversation_history
-from RagLLM.database import db
 from appfrwk.config import get_config
 from appfrwk.logging_config import get_logger
 
@@ -16,8 +17,17 @@ log = get_logger(__name__)
 config = get_config()
 
 
+def termination_msg(x):
+    return isinstance(x, dict) and "TERMINATE" == str(x.get("content", ""))[-9:].upper()
+
+
 class AutoGenService:
     def __init__(self, config_list):
+        self.llm_config = {
+    "timeout": 60,
+    "temperature": 0,
+    "config_list": config_list,
+}
         self.config_list = config_list
         self.openai_api_key = config.OPENAI_API_KEY
         self._initialize_llm()
@@ -32,7 +42,8 @@ class AutoGenService:
             self.llm_config_proxy = {
                 "temperature": 0,
                 "config_list": self.config_list,
-                "request_timeout": 600
+                "request_timeout": 600,
+                "use_docker": False
             }
         except Exception as e:
             log.error(f"Failed to initialize language model: {e}")
@@ -79,10 +90,12 @@ class AutoGenService:
                 },
             ],
             "config_list": self.config_list,
+
             "timeout": 120,
         }
         self.assistant = autogen.AssistantAgent(
             name="assistant",
+            is_termination_msg=termination_msg,
             llm_config=llm_config_assistant,
             system_message="""You are a helpful assistant, Answer the question based on the context. 
                                              Keep the answer accurate. Respond "Unsure about answer" if not sure about the answer."""
@@ -91,8 +104,8 @@ class AutoGenService:
 
     def answer_PDF_question(self, question):
         response = self.qa.rag_chain.invoke({"question": question,
-                            "chat_history": self.qa.get_message_history(),
-                            })
+                                             "chat_history": self.qa.get_message_history(),
+                                             })
         return response
 
     def _initialize_UserProxyAgent(self):
@@ -102,7 +115,11 @@ class AutoGenService:
             max_consecutive_auto_reply=10,
             code_execution_config=False,
             # llm_config_assistant = llm_config_assistant,
+            default_auto_reply="Reply `TERMINATE` if the task is done.",
+            description="The boss who ask questions and give tasks.",
             function_map={
                 "answer_PDF_question": self.answer_PDF_question
             }
         )
+
+
