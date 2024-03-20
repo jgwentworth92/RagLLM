@@ -74,7 +74,7 @@ class AutoGenService:
         llm_config_assistant = {
             "functions": [
                 {
-                    "name": "answer_question",
+                    "name": ".answer_PDF_question",
                     "description": "You can answer questions about the content of a thesis",
                     "parameters": {
                         "type": "object",
