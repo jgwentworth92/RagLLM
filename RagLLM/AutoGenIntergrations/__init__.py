@@ -10,7 +10,7 @@ config = get_config()
 
 config_list = [
     {
-        "model": "gpt-3.5-turbo",
+        "model": "gpt-4",
     }
 ]
 
@@ -94,7 +94,7 @@ class AutoGenService:
         }
         self.assistant = autogen.AssistantAgent(
             name="assistant",
-            is_termination_msg=termination_msg,
+
             llm_config=llm_config_assistant,
             system_message="""You are a helpful assistant, Answer the question based on the context. 
                                              Keep the answer accurate. Respond "Unsure about answer" if not sure about the answer."""
@@ -113,9 +113,8 @@ class AutoGenService:
             human_input_mode="NEVER",
             max_consecutive_auto_reply=10,
             code_execution_config=False,
-            # llm_config_assistant = llm_config_assistant,
-            default_auto_reply="Reply `TERMINATE` if the task is done.",
-            description="The boss who ask questions and give tasks.",
+            system_message="""Reply TERMINATE if the task has been solved at full satisfaction.
+            Otherwise, reply CONTINUE, or the reason why the task is not solved yet.""",
             function_map={
                 "answer_PDF_question": self.answer_PDF_question
             }
