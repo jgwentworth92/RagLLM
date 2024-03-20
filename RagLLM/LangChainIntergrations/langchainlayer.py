@@ -116,9 +116,9 @@ class LangChainService:
         embeddings = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
         mode = "async"
         self.pgvector_store = get_vector_store(
-            connection_string=connection_string,
+            connection_string=f"{config.DATABASE_URL2}",
             embeddings=embeddings,
-            collection_name="testcollection",
+            collection_name=f"{config.collection_name}",
             mode=mode,
         )
         self.retriever = self.pgvector_store.as_retriever(search_type="mmr",
