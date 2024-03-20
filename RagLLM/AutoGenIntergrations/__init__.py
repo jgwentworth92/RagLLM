@@ -74,13 +74,13 @@ class AutoGenService:
             "functions": [
                 {
                     "name": "answer_PDF_question",
-                    "description": "Answer questions based on provided text segments from 'The Hero and the Outlaw' book",
+                    "description": "Answer any  questions",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "question": {
                                 "type": "string",
-                                "description": "Question about the content of a specific text segment from 'The Hero and the Outlaw' book..",
+                                "description": "Question about the content of a thesis.",
                             }
                         },
                         "required": ["question"],
@@ -111,7 +111,6 @@ class AutoGenService:
             code_execution_config=False,
             system_message="""Reply TERMINATE if the task has been solved at full satisfaction.
             Otherwise, reply CONTINUE, or the reason why the task is not solved yet.""",
-            is_termination_msg=lambda msg: "TERMINATE" in msg["content"],
             function_map={
                 "answer_PDF_question": self.answer_PDF_question
             }
