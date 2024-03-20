@@ -1,5 +1,6 @@
 from operator import itemgetter
 
+from langchain import hub
 from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import MessagesPlaceholder
 
@@ -17,6 +18,9 @@ from RagLLM.Processing.document_processing import combine_documents
 from RagLLM.PGvector.store_factory import get_vector_store
 
 log = get_logger(__name__)
+
+from appfrwk.config import get_config
+
 config = get_config()
 
 
@@ -58,6 +62,30 @@ class LangChainService:
         self._initialize_chains()
 
     # Rest of the class implementation...
+    def _initialize_rag_chain_with_source(self):
+        """Create the RAG chain with source."""
+
+        def format_docs(docs):
+            return "\n\n".join(doc.page_content for doc in docs)
+
+        prompt = hub.pull("rlm/rag-prompt")
+        rag_chain_from_docs = (
+                RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+                | prompt
+                | self.llm
+                | StrOutputParser()
+        )
+
+        self.rag_chain_with_source = RunnableParallel(
+            {"context": self.retriever, "question": RunnablePassthrough()}
+        ).assign(answer=rag_chain_from_docs)
+
+    def _initialize_chains(self):
+        """Simplify method calls for initializing various chains."""
+        self._initialize_conversational_qa_chain()
+        self._initialize_contextualize_q_chain()
+        self._initialize_rag_chain()
+        self._initialize_rag_chain_with_source()
 
     def _initialize_memory_and_parser(self):
         """Initialize memory management and output parser."""
@@ -93,7 +121,8 @@ class LangChainService:
             collection_name="testcollection",
             mode=mode,
         )
-        self.retriever = self.pgvector_store.as_retriever()
+        self.retriever = self.pgvector_store.as_retriever(search_type="mmr",
+                                                          search_kwargs={'k': 5, 'fetch_k': 50})
         self._initialize_templates()
 
     def _initialize_templates(self):
@@ -117,12 +146,6 @@ class LangChainService:
         self.CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(self.chat_history_template)
         self.ANSWER_PROMPT = ChatPromptTemplate.from_template(self.template)
         self.DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
-
-    def _initialize_chains(self):
-        """Simplify method calls for initializing various chains."""
-        self._initialize_conversational_qa_chain()
-        self._initialize_contextualize_q_chain()
-        self._initialize_rag_chain()
 
     # Additional methods for chain initializations...
     def _initialize_conversational_qa_chain(self):
