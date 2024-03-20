@@ -98,9 +98,7 @@ class AutoGenService:
         )
 
     def answer_PDF_question(self, question):
-        response = self.qa.rag_chain.invoke({"question": question,
-                                             "chat_history": self.qa.get_message_history(),
-                                             })
+        response = self.qa.rag_chain_with_source.invoke(question)
         return response
 
     def _initialize_UserProxyAgent(self):
