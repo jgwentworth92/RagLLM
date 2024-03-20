@@ -15,7 +15,6 @@ config_list = [
 ]
 
 
-
 def termination_msg(x):
     return isinstance(x, dict) and "TERMINATE" == str(x.get("content", ""))[-9:].upper()
 
@@ -75,13 +74,13 @@ class AutoGenService:
             "functions": [
                 {
                     "name": "answer_PDF_question",
-                    "description": "You can answer questions about the content of a thesis",
+                    "description": "Answer questions based on provided text segments from 'The Hero and the Outlaw' book",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "question": {
                                 "type": "string",
-                                "description": "Question about the content of a thesis.",
+                                "description": "Question about the content of a specific text segment from 'The Hero and the Outlaw' book..",
                             }
                         },
                         "required": ["question"],
@@ -89,15 +88,12 @@ class AutoGenService:
                 },
             ],
             "config_list": self.config_list,
-
-            "timeout": 120,
+            "seed": 42,
+            "temperature": 0,
         }
         self.assistant = autogen.AssistantAgent(
             name="assistant",
-
             llm_config=llm_config_assistant,
-            system_message="""You are a helpful assistant, Answer the question based on the context. 
-                                             Keep the answer accurate. Respond "Unsure about answer" if not sure about the answer."""
 
         )
 
@@ -115,6 +111,7 @@ class AutoGenService:
             code_execution_config=False,
             system_message="""Reply TERMINATE if the task has been solved at full satisfaction.
             Otherwise, reply CONTINUE, or the reason why the task is not solved yet.""",
+            is_termination_msg=lambda msg: "TERMINATE" in msg["content"],
             function_map={
                 "answer_PDF_question": self.answer_PDF_question
             }
