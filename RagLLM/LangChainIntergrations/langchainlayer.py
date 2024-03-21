@@ -1,9 +1,11 @@
 from operator import itemgetter
 from langchain import hub
 from langchain.chains import create_extraction_chain_pydantic
+from langchain_core.documents import Document
 from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import MessagesPlaceholder
 
+from RagLLM.AgenticChunker.agentic_chunker import AgenticChunker
 from RagLLM.LangChainIntergrations.models import Sentences
 from appfrwk.logging_config import get_logger
 from langchain.chat_models import ChatOpenAI as LChainChatOpenAI
@@ -196,14 +198,13 @@ class LangChainService:
         """Add an AI-generated message to the history."""
         self.history.add_ai_message(message)
 
-    def get_propositions(self, text):
-        obj = hub.pull("wfh/proposal-indexing")
+    def get_agentic_chunks(self, text):
 
-        runnable = obj | self.llm
-        extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=self.llm)
-        runnable_output = runnable.invoke({
-            "input": text
-        }).content
-        propositions = extraction_chain.invoke(runnable_output)["text"][0].sentences
-        return propositions
+        ac = AgenticChunker()
+        ac.add_propositions(text)
+        log.info(ac.pretty_print_chunks())
+        chunks = ac.get_chunks(get_type='list_of_strings')
+        log.info(chunks)
+        documents = [Document(page_content=chunk, metadata={"source": "local"}) for chunk in chunks]
 
+        return documents
