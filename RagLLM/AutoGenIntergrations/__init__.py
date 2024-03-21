@@ -94,6 +94,12 @@ class AutoGenService:
         self.assistant = autogen.AssistantAgent(
             name="assistant",
             llm_config=llm_config_assistant,
+            system_message=(
+                "To execute a query on PDF content, direct the UserProxy to run 'answer_PDF_question' "
+                "function with the relevant question. Format your instruction as: "
+                "{ 'function': 'answer_PDF_question', 'parameters': { 'question': '<your_question_here>' } }. "
+                "This will trigger the UserProxy to process the query and provide a response."
+            )
 
         )
 
