@@ -125,8 +125,7 @@ class LangChainService:
             collection_name=f"{config.collection_name}",
             mode=mode,
         )
-        self.retriever = self.pgvector_store.as_retriever(search_type="mmr",
-                                                          search_kwargs={'k': 5, 'fetch_k': 50})
+        self.retriever = self.pgvector_store.as_retriever( search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.5})
         self._initialize_templates()
 
     def _initialize_templates(self):
