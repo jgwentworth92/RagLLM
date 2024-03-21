@@ -58,7 +58,7 @@ class AutoGenService:
             collection_name=f"{config.collection_name}",
             mode=mode,
         )
-        self.retriever = self.pgvector_store.as_retriever()
+        self.retriever = self.pgvector_store.as_retriever( search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.5})
 
     def _initialize_retrieval_chain(self):
         template = """Answer the question based only on the following context:
@@ -92,10 +92,22 @@ class AutoGenService:
             "temperature": 0,
         }
         self.assistant = autogen.AssistantAgent(
-            name="assistant",
-            llm_config=llm_config_assistant,
+    name="assistant",
+    llm_config=llm_config_assistant,
+    system_message=(
+        "Processing request with 'answer_PDF_question'. "
+        "Ensure the 'question' parameter is correctly formatted. "
+        "On success, returns relevant PDF content. "
+        "Check logs for detailed error reports if processing fails."
+    ),
+    description=(
+        "This agent specializes in processing and answering questions based on PDF content. "
+        "It utilizes a combination of retrieval-augmented generation and custom logic to "
+        "provide accurate, context-aware responses. Designed for automated interactions, it "
+        "expects structured requests and provides detailed logs for system monitoring."
+    )
+)
 
-        )
 
     def answer_PDF_question(self, question):
         response = self.qa.rag_chain_with_source.invoke(question)
