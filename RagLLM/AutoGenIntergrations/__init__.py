@@ -95,10 +95,13 @@ class AutoGenService:
             name="assistant",
             llm_config=llm_config_assistant,
             system_message=(
-                "To execute a query on PDF content, direct the UserProxy to run 'answer_PDF_question' "
-                "function with the relevant question. Format your instruction as: "
+                "To use the 'answer_PDF_question' function for querying a PDF document, follow these steps: "
+                "1. Formulate your question related to the PDF content. "
+                "2. Use the following format for your query, substituting '<your_question_here>' with your actual question: "
                 "{ 'function': 'answer_PDF_question', 'parameters': { 'question': '<your_question_here>' } }. "
-                "This will trigger the UserProxy to process the query and provide a response."
+                "3. Submit the formatted request for processing with ***** Suggested function Call: answer_PDF_question *****. "
+                "After processing, you will either receive an answer to your question or the content relevant to your query from the PDF. "
+                "Review this information to determine if it satisfies your original question. If not, you may need to refine your question and submit a new request."
             )
 
         )
