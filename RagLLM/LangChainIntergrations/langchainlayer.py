@@ -1,4 +1,6 @@
 from operator import itemgetter
+from typing import List
+
 from langchain import hub
 from langchain.chains import create_extraction_chain_pydantic
 from langchain_core.documents import Document
@@ -16,6 +18,8 @@ from langchain.schema.runnable import RunnablePassthrough, RunnableParallel
 from langchain_community.embeddings import OpenAIEmbeddings
 from RagLLM.Processing.document_processing import combine_documents
 from RagLLM.PGvector.store_factory import get_vector_store
+from langchain.chains import create_extraction_chain_pydantic
+from langchain_core.pydantic_v1 import BaseModel
 
 log = get_logger(__name__)
 
@@ -198,10 +202,28 @@ class LangChainService:
         """Add an AI-generated message to the history."""
         self.history.add_ai_message(message)
 
-    def get_agentic_chunks(self, text):
+    class Sentences(BaseModel):
+        sentences: List[str]
 
+    # Extraction
+
+    def get_propositions(self, text):
+        obj = hub.pull("wfh/proposal-indexing")
+        runnable = obj | self.llm
+        extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=self.llm)
+        runnable_output = runnable.invoke({
+            "input": text
+        }).content
+        propositions = extraction_chain.invoke(runnable_output)["text"][0].sentences
+        return propositions
+
+    def get_agentic_chunks(self, text):
+        text_propositions = []
+        for i, para in enumerate(text[:5]):
+            propositions = self.get_propositions(para)
+            text_propositions.extend(propositions)
         ac = AgenticChunker()
-        ac.add_propositions(text)
+        ac.add_propositions(text_propositions)
         log.info(ac.pretty_print_chunks())
         chunks = ac.get_chunks(get_type='list_of_strings')
         log.info(chunks)
