@@ -5,7 +5,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import MessagesPlaceholder
 
-from RagLLM.AgenticChunker.agentic_chunker import AgenticChunker
+from RagLLM.Agentic_Chunker.agentic_chunker import AgenticChunker
 from RagLLM.LangChainIntergrations.models import Sentences
 from appfrwk.logging_config import get_logger
 from langchain.chat_models import ChatOpenAI as LChainChatOpenAI
