@@ -92,19 +92,22 @@ class AutoGenService:
             "temperature": 0,
         }
         self.assistant = autogen.AssistantAgent(
-            name="assistant",
-            llm_config=llm_config_assistant,
-            system_message=(
-                "To use the 'answer_PDF_question' function for querying a PDF document, follow these steps: "
-                "1. Formulate your question related to the PDF content. "
-                "2. Use the following format for your query, substituting '<your_question_here>' with your actual question: "
-                "{ 'function': 'answer_PDF_question', 'parameters': { 'question': '<your_question_here>' } }. "
-                "3. Submit the formatted request for processing with ***** Suggested function Call: answer_PDF_question *****. "
-                "After processing, you will either receive an answer to your question or the content relevant to your query from the PDF. "
-                "Review this information to determine if it satisfies your original question. If not, you may need to refine your question and submit a new request."
-            )
+    name="assistant",
+    llm_config=llm_config_assistant,
+    system_message=(
+        "Processing request with 'answer_PDF_question'. "
+        "Ensure the 'question' parameter is correctly formatted. "
+        "On success, returns relevant PDF content. "
+        "Check logs for detailed error reports if processing fails."
+    ),
+    description=(
+        "This agent specializes in processing and answering questions based on PDF content. "
+        "It utilizes a combination of retrieval-augmented generation and custom logic to "
+        "provide accurate, context-aware responses. Designed for automated interactions, it "
+        "expects structured requests and provides detailed logs for system monitoring."
+    )
+)
 
-        )
 
     def answer_PDF_question(self, question):
         response = self.qa.rag_chain_with_source.invoke(question)
