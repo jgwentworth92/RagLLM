@@ -14,5 +14,3 @@ class UserCreate(UserBase):
     """
     pass
 
-class Sentences(BaseModel):
-    sentences: List[str]

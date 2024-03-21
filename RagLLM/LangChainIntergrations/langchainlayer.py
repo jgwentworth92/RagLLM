@@ -1,21 +1,16 @@
 from operator import itemgetter
-
 from langchain import hub
 from langchain.chains import create_extraction_chain_pydantic
-from langchain.schema import runnable
 from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import MessagesPlaceholder
 
-from RagLLM.database.user_schemas import Sentences
-from appfrwk.config import get_config
+from RagLLM.LangChainIntergrations.models import Sentences
 from appfrwk.logging_config import get_logger
 from langchain.chat_models import ChatOpenAI as LChainChatOpenAI
-from langchain.globals import set_debug
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough, RunnableParallel
-from langchain_community.chat_models import ChatOpenAI as CommunityChatOpenAI
 from langchain_community.embeddings import OpenAIEmbeddings
 from RagLLM.Processing.document_processing import combine_documents
 from RagLLM.PGvector.store_factory import get_vector_store
