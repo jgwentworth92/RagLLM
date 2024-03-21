@@ -2,14 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name="RAG LLM conversational Chatbot",
-    version="0.16",
+    version="0.1.1",
     packages=find_packages(),
     install_requires=[
         'fastapi',
         'pydantic',
-        'langchain',
-        'langchain-community',
-        'langchain-core',
+        'langchain==0.1.12',
+        'langchain-community==0.0.28',
+        'langchain-core==0.1.32',
         'langchain-openai',
         'SQLAlchemy',
         'psycopg2-binary',
@@ -23,7 +23,7 @@ setup(
         'pydantic',
         'pydantic-core',
         'pydantic-settings',
-        "pyautogen[retrievechat]"
+        "pyautogen[retrievechat]",
     ],
     entry_points={
         'my_fastapi_app.plugins': [
