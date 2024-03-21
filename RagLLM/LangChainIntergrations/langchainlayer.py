@@ -1,9 +1,12 @@
 from operator import itemgetter
 
 from langchain import hub
+from langchain.chains import create_extraction_chain_pydantic
+from langchain.schema import runnable
 from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import MessagesPlaceholder
 
+from RagLLM.database.user_schemas import Sentences
 from appfrwk.config import get_config
 from appfrwk.logging_config import get_logger
 from langchain.chat_models import ChatOpenAI as LChainChatOpenAI
@@ -197,3 +200,15 @@ class LangChainService:
     def add_ai_message(self, message):
         """Add an AI-generated message to the history."""
         self.history.add_ai_message(message)
+
+    def get_propositions(self, text):
+        obj = hub.pull("wfh/proposal-indexing")
+
+        runnable = obj | self.llm
+        extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=self.llm)
+        runnable_output = runnable.invoke({
+            "input": text
+        }).content
+        propositions = extraction_chain.invoke(runnable_output)["text"][0].sentences
+        return propositions
+
