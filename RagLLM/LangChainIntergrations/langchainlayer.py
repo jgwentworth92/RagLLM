@@ -2,11 +2,13 @@ from operator import itemgetter
 from typing import List
 
 from langchain import hub
+from langchain.agents import initialize_agent, AgentType, AgentExecutor, create_react_agent
 from langchain.chains import create_extraction_chain_pydantic
+from langchain.tools import BaseTool, StructuredTool, tool
 from langchain_core.documents import Document
 from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import MessagesPlaceholder
-
+from langchain.tools.retriever import create_retriever_tool
 from RagLLM.Agentic_Chunker.agentic_chunker import AgenticChunker
 from RagLLM.LangChainIntergrations.models import Sentences
 from appfrwk.logging_config import get_logger
@@ -90,6 +92,7 @@ class LangChainService:
         self._initialize_contextualize_q_chain()
         self._initialize_rag_chain()
         self._initialize_rag_chain_with_source()
+        self._initialize_conversational_react_agent()
 
     def _initialize_memory_and_parser(self):
         """Initialize memory management and output parser."""
@@ -125,7 +128,8 @@ class LangChainService:
             collection_name=f"{config.collection_name}",
             mode=mode,
         )
-        self.retriever = self.pgvector_store.as_retriever( search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.5})
+        self.retriever = self.pgvector_store.as_retriever(search_type="similarity_score_threshold",
+                                                          search_kwargs={"score_threshold": 0.5, "k": 5})
         self._initialize_templates()
 
     def _initialize_templates(self):
@@ -229,3 +233,15 @@ class LangChainService:
         documents = [Document(page_content=chunk, metadata={"source": "local"}) for chunk in chunks]
 
         return documents
+
+    def _initialize_conversational_react_agent(self):
+
+        tool = create_retriever_tool(
+            self.retriever,
+            "search_academic_resources",
+            "Enables the searching of a specialized vector database filled with academic materials, including research papers and books. This tool is designed for deep dives into scholarly content, offering users direct access to a wealth of knowledge across various disciplines. Whether you're looking for the latest findings in a specific field or historical texts that lay the foundation for current theories, this tool streamlines the process, ensuring you can find the information you need without prior knowledge of the database's contents."
+        )
+        prompt = hub.pull("hwchase17/react-chat")
+        tools = [tool]
+        agent = create_react_agent(self.llm, tools, prompt)
+        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
