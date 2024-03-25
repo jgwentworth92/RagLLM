@@ -24,6 +24,10 @@ setup(
         'pydantic-core',
         'pydantic-settings',
         "pyautogen[retrievechat]",
+        "scikit-learn",
+'numpy~=1.26.4',
+'pandas~=2.2.1',
+'umap~=0.1.1',
     ],
     entry_points={
         'my_fastapi_app.plugins': [
@@ -31,3 +35,5 @@ setup(
         ],
     }
 )
+
+

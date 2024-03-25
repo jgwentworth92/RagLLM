@@ -1,0 +1,11 @@
+numpy~=1.26.4
+pandas~=2.2.1
+umap~=0.1.1
+langchain~=0.1.11
+scikit-learn~=1.4.1.post1
+SQLAlchemy~=2.0.28
+pydantic~=2.6.3
+fastapi~=0.110.0
+starlette~=0.36.3
+setuptools~=69.2.0
+alembic~=1.13.1
