@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import umap
 from langchain.prompts import ChatPromptTemplate
+from langchain_community.chat_models import ChatOpenAI
 from langchain_community.llms.openai import OpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import OpenAIEmbeddings
@@ -17,7 +18,7 @@ config = get_config()
 ### --- Code from citations referenced above (added comments and docstrings) --- ###
 
 embd = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY)
-model = OpenAI(openai_api_key=config.OPENAI_API_KEY)
+model = ChatOpenAI(model='gpt-3.5-turbo', openai_api_key=config.OPENAI_API_KEY, temperature=0)
 
 
 def global_cluster_embeddings(
