@@ -282,15 +282,16 @@ def embed_cluster_summarize_texts(
     print(f"--Generated {len(all_clusters)} clusters--")
 
     # Summarization
-    template = """Here is a sub-set of LangChain Expression Langauge doc. 
+    template = """Here is an overview based on the document provided.
 
-    LangChain Expression Langauge provides a way to compose chain in LangChain.
+        This template is designed to help summarize and understand any kind of textual document efficiently.
 
-    Give a detailed summary of the documentation provided.
+        Give a detailed summary of the documentation provided.
 
-    Documentation:
-    {context}
-    """
+        Documentation:
+        {context}
+        """
+
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model | StrOutputParser()
 
