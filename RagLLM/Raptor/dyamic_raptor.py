@@ -18,6 +18,9 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import OpenAIEmbeddings
 from appfrwk.config import get_config
 from RagLLM.PGvector.models import DocumentModel
+from appfrwk.logging_config import get_logger
+
+log = get_logger(__name__)
 
 
 class TextClusterSummarizer:
