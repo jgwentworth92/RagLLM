@@ -7,7 +7,9 @@ from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sklearn.mixture import GaussianMixture
+from appfrwk.config import get_config
 
+config = get_config()
 # Assuming necessary imports are already handled as per your provided code
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.chat_models import ChatOpenAI
@@ -33,14 +35,10 @@ class TextClusterSummarizer:
         )
 
     def load_and_split_documents(self):
-        print("Loading and splitting documents...")
+        log.info("Loading and splitting documents...")
         docs = self.loader.load()
-        d_sorted = sorted(docs, key=lambda x: x.metadata["source"])
-        d_reversed = list(reversed(d_sorted))
-        concatenated_content = "\n\n\n --- \n\n\n".join(
-            [doc.page_content for doc in d_reversed]
-        )
-        return self.text_splitter.split_text(concatenated_content)
+
+        return self.text_splitter.split_documents(docs)
 
     def global_cluster_embeddings(self, embeddings: np.ndarray, dim: int, n_neighbors: Optional[int] = None,
                                   metric: str = "cosine") -> np.ndarray:
