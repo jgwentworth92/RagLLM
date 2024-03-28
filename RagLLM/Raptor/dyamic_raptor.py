@@ -1,8 +1,10 @@
+import hashlib
 from typing import List, Tuple, Dict, Optional
 import numpy as np
 import pandas as pd
 import umap
 from langchain_community.document_loaders import PyMuPDFLoader
+from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sklearn.mixture import GaussianMixture
 
@@ -13,12 +15,14 @@ from langchain_community.llms.openai import OpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import OpenAIEmbeddings
 from appfrwk.config import get_config
+from RagLLM.PGvector.models import DocumentModel
 
 
 class TextClusterSummarizer:
     def __init__(self, token_limit,
                  data_directory, ):
         self.config = get_config()
+        self.data_directory = data_directory
         self.embd = OpenAIEmbeddings(openai_api_key=self.config.OPENAI_API_KEY)
         self.model = ChatOpenAI(model='gpt-3.5-turbo', openai_api_key=self.config.OPENAI_API_KEY, temperature=0)
         self.random_seed = 224  # Fixed seed for reproducibility
@@ -280,5 +284,14 @@ class TextClusterSummarizer:
             summaries = results[level][1]["summaries"].tolist()
             # Extend all_texts with the summaries from the current level
             all_texts.extend(summaries)
-        return all_texts
+        docs = [
+            Document(
+                page_content=doc,
+                metadata=(
 
+                    {"digest": hashlib.md5(doc.encode()).hexdigest(), "source":self.data_directory}
+                ),
+            )
+            for doc in all_texts
+        ]
+        return docs
