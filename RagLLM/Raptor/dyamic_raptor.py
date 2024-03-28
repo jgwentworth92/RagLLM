@@ -10,7 +10,6 @@ from appfrwk.logging_config import get_logger
 
 log = get_logger(__name__)
 
-
 import numpy as np
 import pandas as pd
 import tiktoken
@@ -23,7 +22,6 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sklearn.mixture import GaussianMixture
 
-
 RANDOM_SEED = 224  # Fixed seed for reproducibility
 
 
@@ -32,21 +30,22 @@ RANDOM_SEED = 224  # Fixed seed for reproducibility
 
 class TextClusterSummarizer:
     def __init__(
-        self,
-        token_limit,
-        data_directory,
+            self,
+            token_limit,
+            data_directory,
     ):
         print("Initializing TextClusterSummarizer...")
         self.token_limit = token_limit
         self.loader = PyMuPDFLoader(data_directory)
+        self.data_directory = data_directory
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
+            chunk_size=500,
             chunk_overlap=20,
             length_function=len,
             is_separator_regex=False,
         )
         self.embedding_model = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY)
-        self.chat_model = ChatOpenAI(temperature=0,openai_api_key=config.OPENAI_API_KEY, model="gpt-3.5-turbo")
+        self.chat_model = ChatOpenAI(temperature=0, openai_api_key=config.OPENAI_API_KEY, model="gpt-3.5-turbo")
         self.iteration_summaries = []
 
     def load_and_split_documents(self):
@@ -179,9 +178,19 @@ Text:
             iteration += 1
 
         final_summary = all_summaries[0] if all_summaries else ""
-        return {
-            "initial_texts": texts,
-            "iteration_summaries": self.iteration_summaries,
-            "final_summary": final_summary,
-        }
+        all_texts = []
+        all_texts.extend(self.iteration_summaries[-1]["summaries"])
+        all_texts.extend(texts)
+        all_texts.extend(final_summary)
+        docs = [
+            Document(
+                page_content=doc,
+                metadata=(
+
+                    {"digest": hashlib.md5(doc.encode()).hexdigest(), "source":self.data_directory}
+                ),
+            )
+            for doc in all_texts
+        ]
+        return docs
 
