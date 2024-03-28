@@ -29,7 +29,7 @@ class TextClusterSummarizer:
         self.token_limit = token_limit
         self.loader = PyMuPDFLoader(data_directory)
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=200,
+            chunk_size=1000,
             chunk_overlap=20,
             length_function=len,
             is_separator_regex=False,
