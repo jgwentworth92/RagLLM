@@ -1,27 +1,17 @@
 
-from langchain_community.chat_models import ChatOpenAI
-
-from langchain_openai import OpenAIEmbeddings
-
-
-from appfrwk.config import get_config
-
-
-
 import numpy as np
-import umap
 import pandas as pd
-from sklearn.mixture import GaussianMixture
+import tiktoken
+import umap
 from langchain.prompts import ChatPromptTemplate
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import DirectoryLoader, PyMuPDFLoader
-from dotenv import find_dotenv, load_dotenv
-import tiktoken
+from sklearn.mixture import GaussianMixture
 
-import os
-
+from appfrwk.config import get_config
 
 RANDOM_SEED = 224  # Fixed seed for reproducibility
 
