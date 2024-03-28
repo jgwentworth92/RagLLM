@@ -1,6 +1,7 @@
 from operator import itemgetter
 from typing import List
 
+import tiktoken
 from langchain import hub
 from langchain.agents import initialize_agent, AgentType, AgentExecutor, create_react_agent
 from langchain.chains import create_extraction_chain_pydantic
@@ -11,6 +12,7 @@ from langchain_core.prompts import MessagesPlaceholder
 from langchain.tools.retriever import create_retriever_tool
 from RagLLM.Agentic_Chunker.agentic_chunker import AgenticChunker
 from RagLLM.LangChainIntergrations.models import Sentences
+from RagLLM.Raptor.dyamic_raptor import recursive_embed_cluster_summarize
 from appfrwk.logging_config import get_logger
 from langchain.chat_models import ChatOpenAI as LChainChatOpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
@@ -128,8 +130,7 @@ class LangChainService:
             collection_name=f"{config.collection_name}",
             mode=mode,
         )
-        self.retriever = self.pgvector_store.as_retriever(search_type="similarity_score_threshold",
-                                                          search_kwargs={"score_threshold": 0.5, "k": 5})
+        self.retriever = self.pgvector_store.as_retriever(search_kwargs={"k": 10})
         self._initialize_templates()
 
     def _initialize_templates(self):
@@ -245,3 +246,5 @@ class LangChainService:
         tools = [tool]
         agent = create_react_agent(self.llm, tools, prompt)
         self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+
