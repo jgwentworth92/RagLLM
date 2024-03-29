@@ -26,6 +26,7 @@ setup(
         'numpy~=1.26.4',
         'pandas~=2.2.1',
         'umap-learn==0.5.5',
+        'anthropic'
     ],
     entry_points={
         'my_fastapi_app.plugins': [
