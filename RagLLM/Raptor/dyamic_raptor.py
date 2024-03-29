@@ -193,7 +193,7 @@ Text:
         all_texts = []
         all_texts.extend(self.iteration_summaries[-1]["summaries"])
         all_texts.extend(texts)
-        all_texts.extend(final_summary)
+        all_texts.append(final_summary)
         docs = [
             Document(
                 page_content=doc,
@@ -205,4 +205,4 @@ Text:
             for doc in all_texts
         ]
 
-        return all_texts
+        return docs
