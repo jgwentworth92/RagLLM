@@ -33,6 +33,7 @@ class TextClusterSummarizer:
             self,
             token_limit,
             data_directory,
+            chat_model=None,  # Optional chat_model parameter
     ):
         print("Initializing TextClusterSummarizer...")
         self.token_limit = token_limit
@@ -45,7 +46,13 @@ class TextClusterSummarizer:
             is_separator_regex=False,
         )
         self.embedding_model = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY)
-        self.chat_model = ChatOpenAI(temperature=0, openai_api_key=config.OPENAI_API_KEY, model="gpt-3.5-turbo")
+
+        # Use the provided chat_model if one is passed, otherwise instantiate a new one
+        if chat_model is None:
+            self.chat_model = ChatOpenAI(temperature=0, openai_api_key=config.OPENAI_API_KEY, model="gpt-3.5-turbo")
+        else:
+            self.chat_model = chat_model
+
         self.iteration_summaries = []
 
     def load_and_split_documents(self):
@@ -187,10 +194,9 @@ Text:
                 page_content=doc,
                 metadata=(
 
-                    {"digest": hashlib.md5(doc.encode()).hexdigest(), "source":self.data_directory}
+                    {"digest": hashlib.md5(doc.encode()).hexdigest(), "source": self.data_directory}
                 ),
             )
             for doc in all_texts
         ]
         return docs
-
