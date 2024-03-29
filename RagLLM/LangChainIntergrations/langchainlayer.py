@@ -118,7 +118,7 @@ class LangChainService:
 
     def _initialize_retriever_and_templates(self):
         """Initialize the retriever and templates for conversational retrieval."""
-        connection_string = config.DATABASE_URL2
+
         embeddings = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
         mode = "async"
         self.pgvector_store = get_vector_store(
@@ -127,7 +127,6 @@ class LangChainService:
             collection_name=f"{config.collection_name}",
             mode=mode,
         )
-        TextClusterSummarizer(token_limit=200, data_directory=pdf_filename)
         self.retriever = self.pgvector_store.as_retriever(search_kwargs={"k": 10})
         self._initialize_templates()
 
