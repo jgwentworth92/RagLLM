@@ -32,11 +32,13 @@ class TextClusterSummarizer:
     def __init__(
             self,
             token_limit,
+            max_iterations,
             data_directory,
             chat_model=None,  # Optional chat_model parameter
     ):
         print("Initializing TextClusterSummarizer...")
         self.token_limit = token_limit
+        self.max_iterations = max_iterations
         self.loader = PyMuPDFLoader(data_directory)
         self.data_directory = data_directory
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -182,7 +184,7 @@ Text:
                     "summaries": list(summaries.values()),
                 }
             )
-            if iteration > 5:
+            if iteration > self.max_iterations:
                 print("max iterations reached")
                 break
             iteration += 1
@@ -203,8 +205,4 @@ Text:
             for doc in all_texts
         ]
 
-        return {
-            "initial_texts": texts,
-            "iteration_summaries": self.iteration_summaries[-1]["summaries"],
-            "final_summary": final_summary,
-        }
+        return all_texts
