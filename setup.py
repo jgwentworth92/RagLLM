@@ -16,14 +16,17 @@ setup(
         'pgvector',
         'tiktoken',
         'semantic-text-splitter==0.7.0',
-        'pyautogen[redis]',
         'tokenizers',
         'asyncpg',
         'alembic',
         'pydantic',
         'pydantic-core',
         'pydantic-settings',
-        "pyautogen[retrievechat]",
+        "scikit-learn",
+        'numpy~=1.26.4',
+        'pandas~=2.2.1',
+        'umap-learn==0.5.5',
+        'anthropic'
     ],
     entry_points={
         'my_fastapi_app.plugins': [
