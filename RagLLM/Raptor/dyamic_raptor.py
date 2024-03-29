@@ -182,6 +182,9 @@ Text:
                     "summaries": list(summaries.values()),
                 }
             )
+            if iteration > 5:
+                print("max iterations reached")
+                break
             iteration += 1
 
         final_summary = all_summaries[0] if all_summaries else ""
@@ -199,4 +202,9 @@ Text:
             )
             for doc in all_texts
         ]
-        return docs
+
+        return {
+            "initial_texts": texts,
+            "iteration_summaries": self.iteration_summaries[-1]["summaries"],
+            "final_summary": final_summary,
+        }
