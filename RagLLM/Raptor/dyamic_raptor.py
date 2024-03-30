@@ -21,6 +21,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sklearn.mixture import GaussianMixture
+from icecream import ic
 
 RANDOM_SEED = 224  # Fixed seed for reproducibility
 
@@ -204,5 +205,17 @@ Text:
             )
             for doc in all_texts
         ]
+        ic("--- Summary  Start ---")
+        for page in self.iteration_summaries[-1]["summaries"]:
+            ic("--- Summary Content Start ---")
+            ic(page)
+            ic("---Summary Content End ---\n")
+        ic("--- Raw Text Start ---")
+        for page in texts:
+            ic("--- Text Content Start ---")
+            ic(page)
+            ic("---Text Content End ---\n")
+        ic("--- Final Summary ---")
+        ic(final_summary)
 
         return docs
